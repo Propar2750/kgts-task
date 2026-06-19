@@ -1,0 +1,1 @@
+{"root":["./src/App.test.tsx","./src/App.tsx","./src/api.ts","./src/main.tsx","./src/types.ts","./src/vite-env.d.ts","./src/components/Board.tsx","./src/components/Cell.tsx","./src/components/MatchResult.tsx","./src/components/RoundTransition.tsx","./src/components/StatusPanel.tsx","./src/components/SymbolPicker.tsx","./src/test/setup.ts"],"version":"5.9.3"}

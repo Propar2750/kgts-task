@@ -1,72 +1,81 @@
-# Order & Chaos — Game Engine
+# Order & Chaos
 
-Pure Python game engine for the 6×6 game of **Order and Chaos** (KGTS Tech Task 3).
+A playable 6×6 game of **Order and Chaos** (KGTS Tech Task 3): a Python game engine +
+two-round match layer behind a **FastAPI** backend, with an interactive **React + TypeScript**
+frontend. You play a full two-round match against a bot — you are **Order** in round 1 and
+**Chaos** in round 2 — and the app resolves the overall winner via the rulebook's tiebreaker.
 
-This is the **engine only** — the game mechanics, state, and helpers that play and
-store a single round. No UI and no AI yet; both are designed to attach on top of
-this engine later (a React frontend talking to a Python backend, plus a minimax bot).
+> The bot is currently a **placeholder that plays random legal moves**. The real minimax +
+> alpha-beta AI is a later task and drops into `order_chaos/bot.choose_move` with no other
+> changes.
 
-## Rules (single round)
+## Rules
 
-- 6×6 grid; each cell is empty, `X`, or `O`.
-- **Order** moves first, then players alternate.
-- On a turn, a player places **either an `X` or an `O`** in any empty cell — the
-  choice of symbol is independent of whose turn it is.
-- **Order wins** the moment a **straight-5** appears (5 identical symbols in a row,
-  column, or diagonal), regardless of who placed the fifth stone.
-- **Chaos wins** if the board fills with no straight-5.
+- 6×6 grid; each turn a player places **either an `X` or an `O`** in any empty cell (the
+  symbol choice is independent of whose turn it is — that's the core mechanic).
+- **Order** wins a round by making a **straight-5** (5 identical symbols in a row, column,
+  or diagonal). **Chaos** wins if the board fills with no straight-5.
+- **Two rounds**, roles swapped: P1 = Order then Chaos; P2 = Chaos then Order.
+- **Overall winner** (tiebreaker):
+  - If round-1 Order made a 5: round-2 Order must make a 5 in **fewer Order-moves** to win;
+    tie on moves → more **straight-4s** wins; still tied → draw. If round-2 Order makes no 5,
+    round-1 Order wins.
+  - If round-1 Order made no 5: round-2 Order wins by making any 5; otherwise more
+    straight-4s wins, tie → draw.
 
-## Layout
+## Architecture
 
 ```
-order_chaos/
-  constants.py   # board size, win length, symbols, Player/Status enums
-  board.py       # pure 6x6 grid helpers
-  patterns.py    # straight-5 / straight-4 detection
-  game.py        # GameState, Move, apply_move, legal_moves, serialization
-tests/           # pytest suite
+order_chaos/        # pure Python game logic
+  constants.py      # sizes, symbols, Player/Status enums
+  board.py          # pure 6x6 grid helpers
+  patterns.py       # straight-5 / straight-4 detection
+  game.py           # single-round GameState + apply_move + serialization
+  match.py          # two-round match: role swap, transitions, tiebreaker
+  bot.py            # placeholder random opponent (swappable for minimax)
+api/
+  main.py           # FastAPI: POST /api/match/new, POST /api/match/move
+frontend/           # Vite + React + TypeScript + Tailwind UI
+tests/              # pytest suite (engine, match, bot, api)
 ```
 
-## Usage
+The API is **stateless**: the frontend holds the serialized match state and sends it with
+each move; the backend validates, applies your move, lets the bot reply (which also drives
+the round-1→2 transition and the bot opening round 2 as Order), and returns the new state.
 
-```python
-from order_chaos import new_game, apply_move, Status
+## Running locally
 
-game = new_game()                 # empty board, Order to move
-game = apply_move(game, 0, 0, "X")  # place X at row 0, col 0
-print(game.current_player)        # Player.CHAOS
-print(game.status)                # Status.IN_PROGRESS
-```
-
-The state is immutable: `apply_move` returns a **new** `GameState` and never
-mutates the one passed in. Illegal moves raise `InvalidMoveError`.
-
-### Storing game state
-
-```python
-from order_chaos import to_dict, from_dict
-import json
-
-blob = json.dumps(to_dict(game))   # JSON-serializable snapshot
-game = from_dict(json.loads(blob)) # restored, equal to the original
-```
-
-## Running the tests
+**Backend** (Python 3.9+):
 
 ```bash
-pip install -e ".[test]"   # or: pip install pytest
-pytest
+pip install -e ".[test]"
+uvicorn api.main:app --reload --port 8000
 ```
 
-## Public API
+**Frontend** (Node 18+):
 
-`new_game`, `apply_move`, `legal_moves`, `is_legal`, `to_dict`, `from_dict`,
+```bash
+cd frontend
+npm install
+npm run dev        # http://localhost:5173, talks to the API on :8000
+```
+
+Override the API URL with `VITE_API_URL` if the backend runs elsewhere.
+
+## Tests
+
+```bash
+pytest                 # backend: engine + match + bot + api
+cd frontend && npm test  # frontend smoke tests (Vitest + Testing Library)
+```
+
+## Public Python API
+
+Engine: `new_game`, `apply_move`, `legal_moves`, `is_legal`, `to_dict`, `from_dict`,
 `GameState`, `Move`, `Player`, `Status`, `InvalidMoveError`.
+Match: `order_chaos.match.new_match`, `apply_match_move`, `resolve_match`,
+`current_player_id`, `MatchState`, `RoundResult`, `MatchStatus`, `to_dict`/`from_dict`.
 
-## Not yet implemented (next steps)
+## Not yet implemented
 
-- Interactive React UI for the board.
-- AI opponent (minimax + alpha-beta pruning) — `legal_moves` and the cheap
-  immutable `apply_move` are designed for exactly this search.
-- Two-round match layer: role swap, board reset, and the move-count /
-  straight-4 tiebreaker that decides the overall winner.
+The real minimax + alpha-beta AI (replaces the random bot) and production deployment.

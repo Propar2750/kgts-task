@@ -4,16 +4,20 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "order-chaos-engine"
-version = "0.1.0"
-description = "Pure Python game engine for Order and Chaos (6x6, single round)."
+version = "0.2.0"
+description = "Order and Chaos (6x6) game engine, two-round match, and FastAPI backend."
 requires-python = ">=3.9"
 readme = "README.md"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+]
 
 [project.optional-dependencies]
-test = ["pytest>=7.0"]
+test = ["pytest>=7.0", "httpx>=0.27"]
 
 [tool.setuptools]
-packages = ["order_chaos"]
+packages = ["order_chaos", "api"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

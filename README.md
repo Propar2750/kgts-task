@@ -6,7 +6,8 @@ frontend. You play a full two-round match against a **minimax AI** — you are *
 round 1 and **Chaos** in round 2 — and the app resolves the overall winner via the rulebook's
 tiebreaker.
 
-**Live demo:** _<paste your deployed URL here after deploying — see Deployment below>_
+**Live demo:** **<https://order-and-chaos.onrender.com/>**
+_(free tier — the first load after the service has been idle can take ~30–50 s while it wakes)_
 
 ## The AI (`order_chaos/ai.py`)
 

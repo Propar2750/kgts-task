@@ -2,12 +2,28 @@
 
 A playable 6×6 game of **Order and Chaos** (KGTS Tech Task 3): a Python game engine +
 two-round match layer behind a **FastAPI** backend, with an interactive **React + TypeScript**
-frontend. You play a full two-round match against a bot — you are **Order** in round 1 and
-**Chaos** in round 2 — and the app resolves the overall winner via the rulebook's tiebreaker.
+frontend. You play a full two-round match against a **minimax AI** — you are **Order** in
+round 1 and **Chaos** in round 2 — and the app resolves the overall winner via the rulebook's
+tiebreaker.
 
-> The bot is currently a **placeholder that plays random legal moves**. The real minimax +
-> alpha-beta AI is a later task and drops into `order_chaos/bot.choose_move` with no other
-> changes.
+## The AI (`order_chaos/ai.py`)
+
+A **minimax search with alpha-beta pruning**. The game's value is intrinsic to whose turn it
+is — Order maximizes line potential, Chaos minimizes it — so the search treats Order-to-move
+nodes as MAX and Chaos-to-move nodes as MIN over one heuristic, and naturally handles the bot
+being Chaos in round 1 and Order in round 2.
+
+- **Heuristic:** every length-5 window that mixes X and O is dead (0); a single-symbol window
+  scores by how close it is to five (`10^k`). Order's win = +∞, Chaos's = −∞ (depth-adjusted
+  to prefer faster wins).
+- **Speed:** a flat mutable board with make/undo + **incremental evaluation** (a placement
+  only touches the few windows through that cell), alpha-beta, move ordering, neighborhood
+  pruning, and top-K per-node pruning. Hard (depth 4) runs in well under 100 ms per move.
+- **Difficulty** (set in the UI) maps to search depth: **Easy = 2** plies (plus ~30% random
+  moves), **Medium = 3**, **Hard = 4**.
+
+> `order_chaos/bot.py` keeps a trivial random-move opponent as a baseline; the API uses the
+> minimax AI.
 
 ## Rules
 
@@ -32,7 +48,8 @@ order_chaos/        # pure Python game logic
   patterns.py       # straight-5 / straight-4 detection
   game.py           # single-round GameState + apply_move + serialization
   match.py          # two-round match: role swap, transitions, tiebreaker
-  bot.py            # placeholder random opponent (swappable for minimax)
+  ai.py             # minimax + alpha-beta opponent (Easy/Medium/Hard depths)
+  bot.py            # trivial random opponent (baseline)
 api/
   main.py           # FastAPI: POST /api/match/new, POST /api/match/move
 frontend/           # Vite + React + TypeScript + Tailwind UI
@@ -78,4 +95,4 @@ Match: `order_chaos.match.new_match`, `apply_match_move`, `resolve_match`,
 
 ## Not yet implemented
 
-The real minimax + alpha-beta AI (replaces the random bot) and production deployment.
+Production deployment (the stateless API makes this straightforward to host).

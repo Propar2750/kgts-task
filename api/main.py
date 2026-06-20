@@ -8,10 +8,13 @@ Order), and returns the new state. No session store / database.
 
 from __future__ import annotations
 
+import os
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from order_chaos.game import InvalidMoveError
@@ -29,6 +32,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/healthz")
+def healthz() -> dict:
+    """Liveness probe for the host's health check."""
+    return {"ok": True}
 
 
 class MoveRequest(BaseModel):
@@ -81,3 +90,14 @@ def make_move(req: MoveRequest) -> dict[str, Any]:
         bot_moves.append({"row": move.row, "col": move.col, "symbol": move.symbol})
 
     return {"state": M.to_dict(state), "bot_moves": bot_moves}
+
+
+# Serve the built React app (single-service deploy). Mounted LAST so the /api
+# routes above take precedence. Skipped when no build exists (e.g. local API-only
+# dev or the test suite), so it never interferes there.
+_static_dir = os.environ.get(
+    "STATIC_DIR",
+    str(Path(__file__).resolve().parent.parent / "frontend" / "dist"),
+)
+if Path(_static_dir).is_dir():
+    app.mount("/", StaticFiles(directory=_static_dir, html=True), name="static")

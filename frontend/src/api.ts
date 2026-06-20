@@ -2,7 +2,12 @@
 
 import type { MatchState, MoveResponse, Symbol, Difficulty } from "./types";
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+// In dev, talk to the local backend; in a production build, default to the same
+// origin (the FastAPI service serves this app). VITE_API_URL overrides both,
+// e.g. if you host the frontend and backend separately.
+const BASE_URL =
+  import.meta.env.VITE_API_URL ??
+  (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 async function postJson<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {

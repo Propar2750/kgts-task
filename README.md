@@ -6,6 +6,8 @@ frontend. You play a full two-round match against a **minimax AI** — you are *
 round 1 and **Chaos** in round 2 — and the app resolves the overall winner via the rulebook's
 tiebreaker.
 
+**Live demo:** _<paste your deployed URL here after deploying — see Deployment below>_
+
 ## The AI (`order_chaos/ai.py`)
 
 A **minimax search with alpha-beta pruning**. The game's value is intrinsic to whose turn it
@@ -93,6 +95,30 @@ Engine: `new_game`, `apply_move`, `legal_moves`, `is_legal`, `to_dict`, `from_di
 Match: `order_chaos.match.new_match`, `apply_match_move`, `resolve_match`,
 `current_player_id`, `MatchState`, `RoundResult`, `MatchStatus`, `to_dict`/`from_dict`.
 
-## Not yet implemented
+## Deployment
 
-Production deployment (the stateless API makes this straightforward to host).
+The app ships as a **single Docker service**: the Dockerfile builds the React app and the
+FastAPI server serves both the static UI and the `/api` routes from one origin (no CORS or
+cross-service URL wiring). The production build calls the API at the same origin
+(`src/api.ts`), and `STATIC_DIR` points the server at the built assets.
+
+**Deploy to Render (free, one service):**
+
+1. Push this repo to GitHub (already done).
+2. In Render: **New → Blueprint**, connect this repo. Render reads `render.yaml` and builds
+   the `Dockerfile`.
+3. When the build finishes you get a URL like `https://order-and-chaos.onrender.com`.
+4. Paste that URL into the **Live demo** line near the top of this README and commit.
+
+> The free plan sleeps on inactivity, so the first request after idle can take ~30–50 s
+> (cold start). Any Docker host works the same way (Railway, Fly.io, etc.).
+
+**Run the Docker image locally** (optional sanity check):
+
+```bash
+docker build -t order-chaos . && docker run -p 8000:8000 order-chaos
+# open http://localhost:8000
+```
+
+**Split hosting instead?** Set `VITE_API_URL` at build time to point the frontend (e.g. on
+Vercel/Netlify) at a separately hosted backend; CORS is already open.

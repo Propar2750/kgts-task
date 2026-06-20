@@ -1,0 +1,9 @@
+# Render Blueprint: one Docker web service that serves the API + the React app.
+# In Render: New > Blueprint > connect this repo. Free plan; cold-starts on idle.
+services:
+  - type: web
+    name: order-and-chaos
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /healthz

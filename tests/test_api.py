@@ -38,6 +38,25 @@ def test_human_move_gets_bot_reply_and_returns_to_p1():
     assert new_state["current_player_id"] in ("P1", None)
 
 
+def test_move_accepts_difficulty():
+    state = _new()
+    resp = client.post(
+        "/api/match/move",
+        json={"state": state, "row": 2, "col": 2, "symbol": C.X, "difficulty": "hard"},
+    )
+    assert resp.status_code == 200
+    assert len(resp.json()["bot_moves"]) >= 1
+
+
+def test_unknown_difficulty_returns_400():
+    state = _new()
+    resp = client.post(
+        "/api/match/move",
+        json={"state": state, "row": 2, "col": 2, "symbol": C.X, "difficulty": "godlike"},
+    )
+    assert resp.status_code == 400
+
+
 def test_illegal_move_returns_400():
     state = _new()
     resp = client.post(

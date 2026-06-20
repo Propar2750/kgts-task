@@ -16,7 +16,7 @@ from pydantic import BaseModel
 
 from order_chaos.game import InvalidMoveError
 from order_chaos import match as M
-from order_chaos.bot import choose_move
+from order_chaos import ai
 
 HUMAN = "P1"  # the human is always Player 1
 
@@ -36,6 +36,7 @@ class MoveRequest(BaseModel):
     row: int
     col: int
     symbol: str
+    difficulty: str = "medium"
 
 
 @app.post("/api/match/new")
@@ -52,6 +53,10 @@ def make_move(req: MoveRequest) -> dict[str, Any]:
     except (KeyError, TypeError, ValueError) as exc:
         raise HTTPException(status_code=400, detail=f"Malformed state: {exc}")
 
+    if req.difficulty not in ai.DIFFICULTY_DEPTH:
+        raise HTTPException(
+            status_code=400, detail=f"Unknown difficulty: {req.difficulty!r}"
+        )
     if state.status != M.MatchStatus.IN_PROGRESS:
         raise HTTPException(status_code=400, detail="Match is already complete.")
     if M.current_player_id(state) != HUMAN:
@@ -71,7 +76,7 @@ def make_move(req: MoveRequest) -> dict[str, Any]:
         state.status == M.MatchStatus.IN_PROGRESS
         and M.current_player_id(state) != HUMAN
     ):
-        move = choose_move(state.round, state.round.current_player)
+        move = ai.choose_move(state.round, req.difficulty)
         state = M.apply_match_move(state, move.row, move.col, move.symbol)
         bot_moves.append({"row": move.row, "col": move.col, "symbol": move.symbol})
 

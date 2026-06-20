@@ -1,6 +1,7 @@
 // Types mirroring the backend's serialized match state (order_chaos/match.py).
 
 export type Symbol = "X" | "O";
+export type Difficulty = "easy" | "medium" | "hard";
 export type CellValue = Symbol | null;
 export type Role = "ORDER" | "CHAOS";
 export type PlayerId = "P1" | "P2";

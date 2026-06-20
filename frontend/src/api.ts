@@ -1,6 +1,6 @@
 // Typed fetch client for the Order & Chaos backend.
 
-import type { MatchState, MoveResponse, Symbol } from "./types";
+import type { MatchState, MoveResponse, Symbol, Difficulty } from "./types";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -32,6 +32,13 @@ export function makeMove(
   row: number,
   col: number,
   symbol: Symbol,
+  difficulty: Difficulty,
 ): Promise<MoveResponse> {
-  return postJson<MoveResponse>("/api/match/move", { state, row, col, symbol });
+  return postJson<MoveResponse>("/api/match/move", {
+    state,
+    row,
+    col,
+    symbol,
+    difficulty,
+  });
 }

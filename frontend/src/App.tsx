@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import type { MatchState, RoundResult, Symbol } from "./types";
+import type { Difficulty, MatchState, RoundResult, Symbol } from "./types";
 import { newMatch, makeMove } from "./api";
 import Board from "./components/Board";
 import StatusPanel from "./components/StatusPanel";
+import DifficultySelector from "./components/DifficultySelector";
 import RoundTransition from "./components/RoundTransition";
 import MatchResult from "./components/MatchResult";
 
@@ -12,6 +13,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [pendingCell, setPendingCell] = useState<{ row: number; col: number } | null>(null);
   const [transition, setTransition] = useState<RoundResult | null>(null);
+  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
 
   async function startMatch() {
     setLoading(true);
@@ -38,7 +40,7 @@ export default function App() {
     setPendingCell(null);
     setLoading(true);
     try {
-      const { state } = await makeMove(match, row, col, symbol);
+      const { state } = await makeMove(match, row, col, symbol, difficulty);
       if (
         state.status === "IN_PROGRESS" &&
         state.round_results.length > prevResults
@@ -95,7 +97,12 @@ export default function App() {
                 onCancelPicker={() => setPendingCell(null)}
               />
             </div>
-            <StatusPanel match={match} />
+            <div className="w-full max-w-xs space-y-4">
+              <div className="rounded-xl bg-slate-800/60 p-4">
+                <DifficultySelector value={difficulty} onChange={setDifficulty} />
+              </div>
+              <StatusPanel match={match} />
+            </div>
           </div>
         )}
       </div>

@@ -41,6 +41,14 @@ def _iter_lines(board, length: int):
                     yield cells
 
 
+def line_windows(board, length: int):
+    """Public: yield every length-N straight-line window as a list of cells.
+
+    Used by the AI's evaluation function to score line potential.
+    """
+    return _iter_lines(board, length)
+
+
 def _all_same_symbol(board, cells) -> bool:
     """True if every cell in the window holds the same non-empty symbol."""
     first = board[cells[0][0]][cells[0][1]]

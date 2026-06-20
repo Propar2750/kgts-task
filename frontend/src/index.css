@@ -1,7 +1,32 @@
 @import "tailwindcss";
 
+/* ---- design tokens (Tailwind v4 CSS-first config) ---- */
+@theme {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-ink: #0b0913;
+  --color-ink-2: #120f1d;
+  --color-line: rgba(255, 255, 255, 0.08);
+  --color-order: #2fe0ea;
+  --color-chaos: #ff4d8d;
+  --color-symx: #5bc8ff;
+  --color-symo: #ffc44d;
+  --color-win: #5bf2a6;
+  --color-ink-text: #ece9f6;
+  --color-muted: #968fb2;
+
+  /* Role-reactive accent: resolves to --accent, set per round on the app root.
+     Exposing it as a theme color makes bg-accent/text-accent/ring-accent +
+     their opacity modifiers work reliably. */
+  --color-accent: var(--accent);
+}
+
 :root {
   color-scheme: dark;
+  /* Role accent — overridden per round on the app root. Default: Order. */
+  --accent: #2fe0ea;
 }
 
 html,
@@ -12,5 +37,112 @@ body,
 
 body {
   margin: 0;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--color-ink);
+  color: var(--color-ink-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* accessible, on-brand keyboard focus */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* ---- motion ---- */
+@keyframes pop {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes winpulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 1px var(--color-win), 0 0 18px -2px var(--color-win);
+  }
+  50% {
+    box-shadow: 0 0 0 2px var(--color-win), 0 0 34px 2px var(--color-win);
+  }
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes rise {
+  from {
+    transform: translateY(12px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -24px, 0);
+  }
+}
+
+.animate-pop {
+  animation: pop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+.animate-win {
+  animation: winpulse 1.6s ease-in-out infinite;
+}
+.animate-rise {
+  animation: rise 0.3s ease-out both;
+}
+
+/* atmospheric glows: the two forces in tension behind the board */
+.atmosphere::before,
+.atmosphere::after {
+  content: "";
+  position: fixed;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 9999px;
+  filter: blur(120px);
+  opacity: 0.22;
+  pointer-events: none;
+  z-index: 0;
+}
+.atmosphere::before {
+  background: var(--color-order);
+  top: -20vmax;
+  left: -16vmax;
+  animation: drift 9s ease-in-out infinite alternate;
+}
+.atmosphere::after {
+  background: var(--color-chaos);
+  bottom: -22vmax;
+  right: -16vmax;
+  animation: drift 11s ease-in-out infinite alternate-reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

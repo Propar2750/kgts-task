@@ -14,23 +14,28 @@ export default function RoundTransition({
   onContinue,
 }: Props) {
   const orderLine = result.order_achieved_five
-    ? `Order (${result.order_player}) completed a straight-5 in ${result.order_moves} moves.`
-    : `Order (${result.order_player}) failed to make a straight-5 — Chaos held them off.`;
+    ? `Order (${result.order_player}) forged a line of five in ${result.order_moves} moves.`
+    : `Order (${result.order_player}) never completed a five — Chaos held the line.`;
 
   return (
     <Overlay>
-      <h2 className="text-2xl font-bold text-slate-100">Round {result.round} complete</h2>
-      <p className="text-slate-300">{orderLine}</p>
-      <p className="text-sm text-slate-400">
+      <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+        Round {result.round} complete
+      </p>
+      <h2 className="font-display text-2xl font-bold">The board is reset.</h2>
+      <p className="text-ink-text/85">{orderLine}</p>
+      <p className="font-mono text-xs text-muted">
         Straight-4s created: {result.straight_fours}
       </p>
-      <div className="mt-2 rounded-lg bg-slate-800 p-3 text-center text-slate-200">
+      <div className="mt-1 w-full rounded-xl bg-white/[0.04] px-4 py-3 text-center">
         Round 2 — you now play as{" "}
-        <span className="font-bold text-cyan-300">{nextHumanRole}</span>.
+        <span className="font-display font-bold text-chaos">{nextHumanRole}</span>.
+        Beat the bot's first round.
       </div>
       <button
-        className="mt-2 rounded-lg bg-emerald-500 px-6 py-2 font-semibold text-slate-900 hover:bg-emerald-400"
+        className="mt-1 rounded-lg bg-chaos px-6 py-2.5 font-semibold text-ink transition hover:brightness-110"
         onClick={onContinue}
+        autoFocus
       >
         Start Round 2
       </button>
@@ -40,8 +45,8 @@ export default function RoundTransition({
 
 function Overlay({ children }: { children: ReactNode }) {
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 p-4">
-      <div className="flex w-full max-w-md flex-col items-center gap-3 rounded-2xl bg-slate-900 p-6 text-center shadow-2xl ring-1 ring-slate-700">
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm">
+      <div className="animate-rise flex w-full max-w-md flex-col items-center gap-3 rounded-2xl bg-ink-2 p-7 text-center ring-1 ring-white/10 shadow-2xl">
         {children}
       </div>
     </div>

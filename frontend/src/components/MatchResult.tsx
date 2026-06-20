@@ -10,41 +10,41 @@ export default function MatchResult({ match, onPlayAgain }: Props) {
   const youWon = winner === "P1";
   const draw = winner === "DRAW";
 
-  const headline = draw
-    ? "It's a draw!"
-    : youWon
-      ? "You win! 🎉"
-      : "The bot wins";
-
-  const headlineColor = draw
-    ? "text-slate-100"
-    : youWon
-      ? "text-emerald-300"
-      : "text-rose-300";
+  const headline = draw ? "Stalemate." : youWon ? "You win." : "The bot wins.";
+  const color = draw ? "var(--color-ink-text)" : youWon ? "var(--color-win)" : "var(--color-chaos)";
 
   return (
-    <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/70 p-4">
-      <div className="flex w-full max-w-md flex-col items-center gap-4 rounded-2xl bg-slate-900 p-6 text-center shadow-2xl ring-1 ring-slate-700">
-        <h2 className={`text-3xl font-extrabold ${headlineColor}`}>{headline}</h2>
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-ink/80 p-4 backdrop-blur-sm">
+      <div className="animate-rise flex w-full max-w-md flex-col items-center gap-4 rounded-2xl bg-ink-2 p-7 text-center ring-1 ring-white/10 shadow-2xl">
+        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
+          Match result
+        </p>
+        <h2 className="font-display text-4xl font-bold" style={{ color }}>
+          {headline}
+        </h2>
         {match.winner_reason && (
-          <p className="text-slate-300">{match.winner_reason}</p>
+          <p className="text-ink-text/85">{match.winner_reason}</p>
         )}
 
-        <div className="w-full space-y-1 rounded-lg bg-slate-800 p-3 text-left text-sm text-slate-300">
+        <div className="w-full space-y-1.5 rounded-xl bg-white/[0.04] p-4 text-left">
           {match.round_results.map((r) => (
-            <div key={r.round}>
-              <span className="font-semibold">Round {r.round}</span> — Order ({r.order_player}):{" "}
-              {r.order_achieved_five
-                ? `5-in-a-row in ${r.order_moves} moves`
-                : "no 5"}
-              , {r.straight_fours} straight-4s
+            <div key={r.round} className="flex items-center justify-between text-sm">
+              <span className="text-muted">
+                Round {r.round} · Order {r.order_player}
+              </span>
+              <span className="font-mono text-xs text-ink-text/90">
+                {r.order_achieved_five ? `5 in ${r.order_moves}` : "no 5"} ·{" "}
+                {r.straight_fours}×4
+              </span>
             </div>
           ))}
         </div>
 
         <button
-          className="mt-1 rounded-lg bg-emerald-500 px-6 py-2 font-semibold text-slate-900 hover:bg-emerald-400"
+          className="mt-1 rounded-lg px-6 py-2.5 font-semibold text-ink transition hover:brightness-110"
+          style={{ background: "var(--accent)" }}
           onClick={onPlayAgain}
+          autoFocus
         >
           Play again
         </button>

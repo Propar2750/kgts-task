@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import type { Difficulty, MatchState, RoundResult, Symbol } from "./types";
 import { newMatch, makeMove } from "./api";
 import Board from "./components/Board";
@@ -6,6 +7,9 @@ import StatusPanel from "./components/StatusPanel";
 import DifficultySelector from "./components/DifficultySelector";
 import RoundTransition from "./components/RoundTransition";
 import MatchResult from "./components/MatchResult";
+
+const ORDER_ACCENT = "#2fe0ea";
+const CHAOS_ACCENT = "#ff4d8d";
 
 export default function App() {
   const [match, setMatch] = useState<MatchState | null>(null);
@@ -23,7 +27,7 @@ export default function App() {
     try {
       setMatch(await newMatch());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to start match");
+      setError(e instanceof Error ? e.message : "Couldn't reach the server");
     } finally {
       setLoading(false);
     }
@@ -41,21 +45,19 @@ export default function App() {
     setLoading(true);
     try {
       const { state } = await makeMove(match, row, col, symbol, difficulty);
-      if (
-        state.status === "IN_PROGRESS" &&
-        state.round_results.length > prevResults
-      ) {
+      if (state.status === "IN_PROGRESS" && state.round_results.length > prevResults) {
         setTransition(state.round_results[state.round_results.length - 1]);
       }
       setMatch(state);
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Move failed");
+      setError(e instanceof Error ? e.message : "That move didn't take");
     } finally {
       setLoading(false);
     }
   }
 
+  const accent = match?.human_role === "CHAOS" ? CHAOS_ACCENT : ORDER_ACCENT;
   const interactive =
     !!match &&
     match.status === "IN_PROGRESS" &&
@@ -64,26 +66,31 @@ export default function App() {
     !transition;
 
   return (
-    <div className="min-h-full bg-gradient-to-b from-slate-900 to-slate-950 px-4 py-8 text-slate-100">
-      <div className="mx-auto max-w-4xl">
-        <header className="mb-6 text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            Order <span className="text-slate-500">&amp;</span> Chaos
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            6×6 · two rounds · you vs. a bot
+    <div
+      className="atmosphere relative min-h-full overflow-hidden px-4 py-8 sm:py-12"
+      style={{ "--accent": accent } as CSSProperties}
+    >
+      <div className="relative z-10 mx-auto max-w-4xl">
+        <header className="mb-8 text-center">
+          <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-muted">
+            Five in a row — or none at all
           </p>
+          <h1 className="mt-2 font-display text-5xl font-bold tracking-tight sm:text-6xl">
+            <span className="text-order">Order</span>
+            <span className="text-muted"> &amp; </span>
+            <span className="text-chaos">Chaos</span>
+          </h1>
         </header>
 
         {error && (
-          <div className="mx-auto mb-4 max-w-md rounded-lg bg-rose-500/20 px-4 py-2 text-center text-sm text-rose-200">
+          <div className="mx-auto mb-5 max-w-md rounded-lg bg-chaos/15 px-4 py-2 text-center text-sm text-chaos ring-1 ring-chaos/30">
             {error}
           </div>
         )}
 
         {!match ? (
-          <p className="text-center text-slate-400">
-            {loading ? "Loading…" : "No game."}
+          <p className="text-center font-mono text-sm text-muted">
+            {loading ? "Setting up the board…" : "No game."}
           </p>
         ) : (
           <div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-center">
@@ -98,10 +105,8 @@ export default function App() {
               />
             </div>
             <div className="w-full max-w-xs space-y-4">
-              <div className="rounded-xl bg-slate-800/60 p-4">
-                <DifficultySelector value={difficulty} onChange={setDifficulty} />
-              </div>
               <StatusPanel match={match} />
+              <DifficultySelector value={difficulty} onChange={setDifficulty} />
             </div>
           </div>
         )}

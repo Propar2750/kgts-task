@@ -4,6 +4,7 @@ import SymbolPicker from "./SymbolPicker";
 interface Props {
   value: CellValue;
   isWinning: boolean;
+  isLast: boolean;
   isInteractive: boolean;
   showPicker: boolean;
   onClick: () => void;
@@ -11,14 +12,15 @@ interface Props {
   onCancelPicker: () => void;
 }
 
-const symbolColor: Record<Symbol, string> = {
-  X: "text-cyan-300",
-  O: "text-amber-300",
+const symbolStyle: Record<Symbol, string> = {
+  X: "text-symx [text-shadow:0_0_18px_color-mix(in_srgb,var(--color-symx)_70%,transparent)]",
+  O: "text-symo [text-shadow:0_0_18px_color-mix(in_srgb,var(--color-symo)_70%,transparent)]",
 };
 
 export default function Cell({
   value,
   isWinning,
+  isLast,
   isInteractive,
   showPicker,
   onClick,
@@ -26,29 +28,45 @@ export default function Cell({
   onCancelPicker,
 }: Props) {
   const clickable = isInteractive && value === null;
+
   return (
-    // A div (not a button) so the X/O picker's buttons aren't nested in a button.
     <div
       role="button"
       aria-disabled={!clickable}
+      aria-label={value ? `${value} placed` : "empty cell"}
       tabIndex={clickable ? 0 : -1}
       onClick={clickable ? onClick : undefined}
       onKeyDown={
         clickable
           ? (e) => {
-              if (e.key === "Enter" || e.key === " ") onClick();
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick();
+              }
             }
           : undefined
       }
       data-testid="cell"
       className={[
-        "relative flex aspect-square select-none items-center justify-center rounded-md text-3xl font-bold transition-colors sm:text-4xl",
-        isWinning ? "bg-emerald-500/30 ring-2 ring-emerald-400" : "bg-slate-800",
-        clickable ? "cursor-pointer hover:bg-slate-700" : "",
-        value ? symbolColor[value] : "text-transparent",
+        "group relative flex aspect-square select-none items-center justify-center rounded-lg",
+        "font-display text-3xl font-bold sm:text-4xl",
+        "border border-white/5 transition duration-150",
+        isWinning
+          ? "animate-win bg-win/15"
+          : "bg-white/[0.03] " + (clickable ? "hover:border-accent/60 hover:bg-accent/10" : ""),
+        isLast && !isWinning ? "ring-1 ring-accent/70" : "",
+        clickable ? "cursor-pointer" : "",
       ].join(" ")}
     >
-      {value ?? ""}
+      {value ? (
+        <span key={value} className={`animate-pop ${symbolStyle[value]}`}>
+          {value}
+        </span>
+      ) : (
+        clickable && (
+          <span className="h-1.5 w-1.5 rounded-full bg-accent opacity-0 transition group-hover:opacity-60" />
+        )
+      )}
       {showPicker && <SymbolPicker onPick={onPick} onCancel={onCancelPicker} />}
     </div>
   );
